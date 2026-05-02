@@ -1,40 +1,40 @@
 {
-	"name": "@microflash/remark-figure-caption",
-	"version": "2.0.2",
-	"description": "remark plugin to add images with alt text to figures with captions",
-	"license": "MIT",
-	"keywords": [
-		"unified",
-		"remark",
-		"remark-plugin",
-		"plugin",
-		"figure",
-		"caption",
-		"image"
-	],
-	"repository": "https://github.com/Microflash/remark-figure-caption.git",
-	"bugs": "https://github.com/Microflash/remark-figure-caption/issues",
-	"homepage": "https://github.com/Microflash/remark-figure-caption#readme",
-	"author": "Quang Trinh <khacquang.trinh@gmail.com> (https://tkhquang.dev)",
-	"type": "module",
-	"main": "index.js",
-	"files": [
-		"index.js"
-	],
-	"scripts": {
-		"test": "bun test"
-	},
-	"dependencies": {
-		"hast-util-whitespace": "^3.0.0",
-		"mdast-util-from-markdown": "^2.0.3",
-		"unist-util-remove": "^4.0.0",
-		"unist-util-visit": "^5.1.0"
-	},
-	"devDependencies": {
-		"rehype-stringify": "^10.0.1",
-		"remark-gfm": "^4.0.1",
-		"remark-parse": "^11.0.0",
-		"remark-rehype": "^11.1.2",
-		"unified": "^11.0.5"
-	}
+  "name": "@sebastianromero/remark-figure-caption",
+  "version": "2.0.3",
+  "description": "remark plugin to add images with alt text, and markdown tables, into `<figure>` elements with captions. Includes support for auto-numbering and cross-references.",
+  "license": "MIT",
+  "keywords": [
+    "unified",
+    "remark",
+    "remark-plugin",
+    "plugin",
+    "figure",
+    "caption",
+    "image"
+  ],
+  "repository": "https://github.com/sebastianromero/remark-figure-caption.git",
+  "bugs": "https://github.com/sebastianromero/remark-figure-caption/issues",
+  "homepage": "https://github.com/sebastianromero/remark-figure-caption#readme",
+  "author": "Sebastian Romero (https://sebastianromero.dev)",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "hast-util-whitespace": "^3.0.0",
+    "mdast-util-from-markdown": "^2.0.3",
+    "unist-util-remove": "^4.0.0",
+    "unist-util-visit": "^5.1.0"
+  },
+  "devDependencies": {
+    "rehype-stringify": "^10.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5"
+  }
 }
