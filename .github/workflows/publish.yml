@@ -46,11 +46,7 @@ jobs:
             echo "already_published=false" >> $GITHUB_OUTPUT
             echo "🚀 ${PACKAGE_NAME}@${PACKAGE_VERSION} not yet published."
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish to npm
         if: steps.version_check.outputs.already_published == 'false'
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
