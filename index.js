@@ -9,10 +9,12 @@ export default function remarkFigureCaption(options = {}) {
 	const autoNumber = options.autoNumber || false;
 	const figurePrefix = options.figurePrefix || "Figure ";
 	const tablePrefix = options.tablePrefix || "Table ";
+	const codePrefix = options.codePrefix || "Code ";
 
 	return (tree) => {
 		let figureCount = 1;
 		let tableCount = 1;
+		let codeCount = 1;
 		const idMap = {};
 
 		// Unwrap the images inside Paragraphs
@@ -153,6 +155,95 @@ export default function remarkFigureCaption(options = {}) {
 			}
 		);
 
+		// Wrap code nodes in figure
+		visit(
+			tree,
+			"code",
+			(node, index, parent) => {
+				if (isTableWithCaption(parent)) {
+					return;
+				}
+
+				let captionParagraph = null;
+				let captionIndex = -1;
+
+				if (index > 0 && isCaptionParagraph(parent.children[index - 1])) {
+					captionParagraph = parent.children[index - 1];
+					captionIndex = index - 1;
+				} else if (index < parent.children.length - 1 && isCaptionParagraph(parent.children[index + 1])) {
+					captionParagraph = parent.children[index + 1];
+					captionIndex = index + 1;
+				}
+
+				if (captionParagraph) {
+					const captionChildren = extractCaptionChildren(captionParagraph);
+
+					let figId = null;
+					if (captionChildren.length > 0) {
+						const lastChild = captionChildren[captionChildren.length - 1];
+						if (lastChild.type === "text") {
+							const idMatch = lastChild.value.match(/\{#([^}]+)\}$/);
+							if (idMatch) {
+								figId = idMatch[1];
+								lastChild.value = lastChild.value.replace(/\s*\{#([^}]+)\}$/, "");
+								if (lastChild.value === "") {
+									captionChildren.pop();
+								}
+							}
+						}
+					}
+
+					const label = codePrefix + codeCount;
+					codeCount++;
+					if (figId) idMap[figId] = label;
+
+					if (autoNumber) {
+						captionChildren.unshift({ type: "text", value: label + ": " });
+					}
+
+					const figcaption = {
+						type: "figcaption",
+						children: captionChildren,
+						data: {
+							hName: "figcaption",
+							...getClassProp(options.captionClassName),
+						},
+					};
+
+					const codeNode = { ...node }; // Clone node to prevent circular reference
+
+					const figure = {
+						type: "figure",
+						children: [codeNode, figcaption],
+						data: {
+							hName: "figure",
+							...getClassProp(options.figureClassName),
+						},
+					};
+
+					if (figId) {
+						figure.data = figure.data || {};
+						figure.data.hProperties = figure.data.hProperties || {};
+						figure.data.hProperties.id = figId;
+					}
+
+					node.type = figure.type;
+					node.children = figure.children;
+					node.data = figure.data;
+
+					// Remove code-specific properties now that node is a figure
+					delete node.value;
+					delete node.lang;
+					delete node.meta;
+
+					parent.children.splice(captionIndex, 1);
+
+					// Adjust the index so visit continues correctly
+					return captionIndex < index ? index : index + 1;
+				}
+			}
+		);
+
 		// Second pass for cross-references
 		visit(tree, "link", (node) => {
 			if (node.url && node.url.startsWith("#")) {
@@ -234,7 +325,7 @@ const isTableWithCaption = (parent) => {
 	);
 };
 
-const captionPrefixRegex = /^((?:[Tt]able)?:)\s*/;
+const captionPrefixRegex = /^((?:[Tt]able|[Cc]ode)?:)\s*/;
 
 const isCaptionParagraph = (node) => {
 	if (node.type !== "paragraph" || !node.children || node.children.length === 0) {

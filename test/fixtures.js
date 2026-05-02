@@ -76,5 +76,22 @@ export default [
 		input: `![My image {#fig:img2}](http://example.com/test.png)\n\nLook at [this cool image](#fig:img2).`,
 		output: `<figure id="fig:img2"><img src="http://example.com/test.png" alt="My image"><figcaption>Figure 1: My image</figcaption></figure>\n<p>Look at <a href="#fig:img2">this cool image</a>.</p>`,
 		options: { autoNumber: true }
+	},
+	{
+		title: "code block with succeeding caption",
+		input: "```js\nconst x = 1;\n```\n\nCode: My code caption",
+		output: `<figure><pre><code class="language-js">const x = 1;\n</code></pre><figcaption>My code caption</figcaption></figure>`
+	},
+	{
+		title: "code block with preceding caption",
+		input: "Code: Preceding code caption\n\n```js\nconst x = 1;\n```",
+		output: `<figure><pre><code class="language-js">const x = 1;\n</code></pre><figcaption>Preceding code caption</figcaption></figure>`
+	},
+	{
+		title: "code block with auto-numbering and ID",
+		input: "```js\nconst x = 1;\n```\n\nCode: My listing {#lst:example}\n\nSee [](#lst:example).",
+		output: `<figure id="lst:example"><pre><code class="language-js">const x = 1;\n</code></pre><figcaption>Code 1: My listing</figcaption></figure>\n<p>See <a href="#lst:example">Code 1</a>.</p>`,
+		options: { autoNumber: true }
 	}
 ];
+

@@ -1,7 +1,7 @@
 {
   "name": "@sebastianromero/remark-figure-caption",
-  "version": "2.0.3",
-  "description": "remark plugin to add images with alt text, and markdown tables, into `<figure>` elements with captions. Includes support for auto-numbering and cross-references.",
+  "version": "2.1.0",
+  "description": "remark plugin to wrap images, tables, and code blocks into `<figure>` elements with captions. Includes support for auto-numbering and cross-references.",
   "license": "MIT",
   "keywords": [
     "unified",
@@ -10,7 +10,9 @@
     "plugin",
     "figure",
     "caption",
-    "image"
+    "image",
+    "table",
+    "code"
   ],
   "repository": "https://github.com/sebastianromero/remark-figure-caption.git",
   "bugs": "https://github.com/sebastianromero/remark-figure-caption/issues",
