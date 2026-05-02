@@ -14,7 +14,10 @@
     "table",
     "code"
   ],
-  "repository": "https://github.com/sebastianromero/remark-figure-caption.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebastianromero/remark-figure-caption.git"
+  },
   "bugs": "https://github.com/sebastianromero/remark-figure-caption/issues",
   "homepage": "https://github.com/sebastianromero/remark-figure-caption#readme",
   "author": "Sebastian Romero (https://sebastianromero.dev)",
