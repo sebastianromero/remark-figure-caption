@@ -1,6 +1,7 @@
 import { test, expect } from "bun:test";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import remarkFigureCaption from "../index.js";
@@ -9,6 +10,7 @@ import fixtures from "./fixtures.js";
 async function process(markdown, options = {}) {
 	const file = await unified()
 		.use(remarkParse)
+		.use(remarkGfm)
 		.use(remarkFigureCaption, options)
 		.use(remarkRehype, { allowDangerousHtml: true })
 		.use(rehypeStringify, { allowDangerousHtml: true })

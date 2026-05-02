@@ -4,11 +4,9 @@
 [![regression](https://github.com/Microflash/remark-figure-caption/actions/workflows/regression.yml/badge.svg)](https://github.com/Microflash/remark-figure-caption/actions/workflows/regression.yml)
 [![license](https://img.shields.io/npm/l/@microflash/remark-figure-caption)](./LICENSE.md)
 
-[remark](https://github.com/remarkjs/remark) plugin to transform images with alt text to figures with captions
+[remark](https://github.com/remarkjs/remark) plugin to transform images with alt text, and markdown tables, into `<figure>` elements with captions. Includes support for auto-numbering and cross-references.
 
-## Status: legacy
-
-> This package is no longer recommended for use. It’s still covered by semantic-versioning guarantees and not yet deprecated, but use of this package should be avoided. Please use remark-rehype to move from remark (markdown) to rehype (HTML) and then replace remark-figure-caption with [`rehype-figure`](https://github.com/Microflash/rehype-figure).
+> **Note:** This is a fork maintained by Sebastian Romero, originally based on `@microflash/remark-figure-caption`. It adds support for Pandoc-style table captions, auto-numbering, cross-referencing, and is fully compatible with Astro 6 and Bun.
 
 ## Contents
 
@@ -20,9 +18,11 @@
 - [Credits](#credits)
 - [License](#license)
 
-## What's this?
+This package is a [unified](https://github.com/unifiedjs/unified) ([remark](https://github.com/remarkjs/remark)) plugin that takes image nodes with alt text (e.g., `![Alt text](path-to-image.jpg)`) and converts them to [figure](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure) elements with captions.
 
-This package is a [unified](https://github.com/unifiedjs/unified) ([remark](https://github.com/remarkjs/remark)) plugin that takes the image nodes with alt text (e.g., `![Alt text](path-to-image.jpg)`) and converts them to [figure](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure) elements with captions.
+Additionally, it supports Pandoc-style **table captions**. If you place a paragraph starting with `Table:` before or after a markdown table, it will wrap the table in a `<figure>` and use the text as its `<figcaption>`.
+
+You can also assign IDs to figures and tables `{#fig:my-id}`, and use cross-references `[](#fig:my-id)` which automatically inherit the figure numbers if `autoNumber` is enabled.
 
 ```html
 <figure>
@@ -104,8 +104,30 @@ The following options are available. All of them are optional.
 - `figureClassName`: class for the wrapped `figure` element
 - `imageClassName`: class for the wrapped `img` element
 - `captionClassName`: class for the wrapped `figcaption` element
+- `autoNumber`: boolean (default: `false`). Enables automatic numbering of figures and tables.
+- `figurePrefix`: string (default: `"Figure "`). Prefix used for numbered images.
+- `tablePrefix`: string (default: `"Table "`). Prefix used for numbered tables.
 
 By default, no classes are added to the `figure`, `img` and `figcaption` elements.
+
+### Examples
+
+**Table Captions:**
+```markdown
+Table: My Caption
+
+| a | b |
+|---|---|
+| 1 | 2 |
+```
+
+**Cross References with Auto-Numbering:**
+```markdown
+![My graph {#fig:graph1}](graph.png)
+
+As seen in [](#fig:graph1)...
+```
+*Becomes: `As seen in <a href="#fig:graph1">Figure 1</a>...`*
 
 ## Credits
 

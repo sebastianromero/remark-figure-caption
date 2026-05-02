@@ -6,7 +6,15 @@ import { fromMarkdown } from "mdast-util-from-markdown";
 
 /** @type {import("unified").Plugin<[], import("mdast").Root>} */
 export default function remarkFigureCaption(options = {}) {
+	const autoNumber = options.autoNumber || false;
+	const figurePrefix = options.figurePrefix || "Figure ";
+	const tablePrefix = options.tablePrefix || "Table ";
+
 	return (tree) => {
+		let figureCount = 1;
+		let tableCount = 1;
+		const idMap = {};
+
 		// Unwrap the images inside Paragraphs
 		visit(tree, "paragraph", (node, index, parent) => {
 			if (!hasOnlyImages(node)) {
@@ -29,13 +37,133 @@ export default function remarkFigureCaption(options = {}) {
 					return;
 				}
 
+				let figId = null;
+				if (node.alt) {
+					const altMatch = node.alt.match(/\{#([^}]+)\}$/);
+					if (altMatch) {
+						figId = altMatch[1];
+						node.alt = node.alt.replace(/\s*\{#([^}]+)\}$/, "");
+					}
+				}
+
 				const figure = createNodes(node, options);
+
+				const label = figurePrefix + figureCount;
+				figureCount++;
+				if (figId) idMap[figId] = label;
+
+				if (autoNumber) {
+					if (!figure.children[1].children) figure.children[1].children = [];
+					figure.children[1].children.unshift({ type: "text", value: label + ": " });
+				}
+
+				if (figId) {
+					figure.data = figure.data || {};
+					figure.data.hProperties = figure.data.hProperties || {};
+					figure.data.hProperties.id = figId;
+				}
 
 				node.type = figure.type;
 				node.children = figure.children;
 				node.data = figure.data;
 			}
 		);
+
+		// Wrap table nodes in figure
+		visit(
+			tree,
+			"table",
+			(node, index, parent) => {
+				if (isTableWithCaption(parent)) {
+					return;
+				}
+
+				let captionParagraph = null;
+				let captionIndex = -1;
+
+				if (index > 0 && isCaptionParagraph(parent.children[index - 1])) {
+					captionParagraph = parent.children[index - 1];
+					captionIndex = index - 1;
+				} else if (index < parent.children.length - 1 && isCaptionParagraph(parent.children[index + 1])) {
+					captionParagraph = parent.children[index + 1];
+					captionIndex = index + 1;
+				}
+
+				if (captionParagraph) {
+					const captionChildren = extractCaptionChildren(captionParagraph);
+
+					let figId = null;
+					if (captionChildren.length > 0) {
+						const lastChild = captionChildren[captionChildren.length - 1];
+						if (lastChild.type === "text") {
+							const idMatch = lastChild.value.match(/\{#([^}]+)\}$/);
+							if (idMatch) {
+								figId = idMatch[1];
+								lastChild.value = lastChild.value.replace(/\s*\{#([^}]+)\}$/, "");
+								if (lastChild.value === "") {
+									captionChildren.pop();
+								}
+							}
+						}
+					}
+
+					const label = tablePrefix + tableCount;
+					tableCount++;
+					if (figId) idMap[figId] = label;
+
+					if (autoNumber) {
+						captionChildren.unshift({ type: "text", value: label + ": " });
+					}
+
+					const figcaption = {
+						type: "figcaption",
+						children: captionChildren,
+						data: {
+							hName: "figcaption",
+							...getClassProp(options.captionClassName),
+						},
+					};
+
+					const tableNode = { ...node }; // Clone node to prevent circular reference
+
+					const figure = {
+						type: "figure",
+						children: [tableNode, figcaption],
+						data: {
+							hName: "figure",
+							...getClassProp(options.figureClassName),
+						},
+					};
+
+					if (figId) {
+						figure.data = figure.data || {};
+						figure.data.hProperties = figure.data.hProperties || {};
+						figure.data.hProperties.id = figId;
+					}
+
+					node.type = figure.type;
+					node.children = figure.children;
+					node.data = figure.data;
+
+					parent.children.splice(captionIndex, 1);
+
+					// Adjust the index so visit continues correctly
+					return captionIndex < index ? index : index + 1;
+				}
+			}
+		);
+
+		// Second pass for cross-references
+		visit(tree, "link", (node) => {
+			if (node.url && node.url.startsWith("#")) {
+				const id = node.url.slice(1);
+				if (idMap[id]) {
+					if (!node.children || node.children.length === 0) {
+						node.children = [{ type: "text", value: idMap[id] }];
+					}
+				}
+			}
+		});
 	};
 }
 
@@ -97,6 +225,37 @@ const isImageWithCaption = (parent) => {
 		parent.type === "figure" &&
 		parent.children.some((child) => child.type === "figcaption")
 	);
+};
+
+const isTableWithCaption = (parent) => {
+	return (
+		parent.type === "figure" &&
+		parent.children.some((child) => child.type === "figcaption")
+	);
+};
+
+const captionPrefixRegex = /^((?:[Tt]able)?:)\s*/;
+
+const isCaptionParagraph = (node) => {
+	if (node.type !== "paragraph" || !node.children || node.children.length === 0) {
+		return false;
+	}
+	const firstChild = node.children[0];
+	if (firstChild.type === "text" && captionPrefixRegex.test(firstChild.value)) {
+		return true;
+	}
+	return false;
+};
+
+const extractCaptionChildren = (paragraphNode) => {
+	// Deep copy to avoid mutating the original safely
+	const children = JSON.parse(JSON.stringify(paragraphNode.children));
+	const firstChild = children[0];
+	firstChild.value = firstChild.value.replace(captionPrefixRegex, "");
+	if (firstChild.value === "" && children.length > 1) {
+		children.shift();
+	}
+	return children;
 };
 
 const isImageLink = (parent) => {
